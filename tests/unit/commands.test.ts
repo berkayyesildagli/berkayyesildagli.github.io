@@ -19,6 +19,7 @@ describe('commands', () => {
       expect(result).toContain('Network:');
       expect(result).toContain('Contact:');
       expect(result).toContain('Fun:');
+      expect(result).toContain('Math:');
     });
 
     it('should list commands under each category', () => {
@@ -317,4 +318,81 @@ describe('commands', () => {
     expect(result).toContain('Unknown todo command');
   });
 });
+
+  describe('calc', () => {
+    it('returns usage when no expression', () => {
+      const result = commands.calc([]);
+      expect(result).toContain('Usage: calc');
+    });
+
+    it('evaluates a simple expression', () => {
+      expect(commands.calc(['2+2'])).toBe('4');
+    });
+
+    it('joins multi-arg expressions', () => {
+      expect(commands.calc(['2', '+', '3', '*', '4'])).toBe('14');
+    });
+
+    it('handles parentheses', () => {
+      expect(commands.calc(['(3', '+', '4)', '*', '2', '-', '1'])).toBe('13');
+    });
+
+    it("returns error message for unknown operator '**'", () => {
+      const result = commands.calc(['2', '**', '8']);
+      expect(result).toContain("unknown operator '**'");
+    });
+
+    it('returns error for division by zero', () => {
+      expect(commands.calc(['100', '/', '0'])).toContain('division by zero');
+    });
+
+    it('returns error for invalid input', () => {
+      expect(commands.calc(['abc'])).toContain('error');
+    });
+  });
+
+  describe('convert', () => {
+    it('returns usage when no args', () => {
+      const result = commands.convert([]);
+      expect(result).toContain('Usage: convert');
+      expect(result).toContain('length');
+      expect(result).toContain('temperature');
+    });
+
+    it('returns usage when "to" keyword missing', () => {
+      const result = commands.convert(['100', 'km', 'mi']);
+      expect(result).toContain('Usage: convert');
+    });
+
+    it('converts km to mi', () => {
+      const result = commands.convert(['100', 'km', 'to', 'mi']);
+      expect(result).toContain('100 km =');
+      expect(result).toContain('mi');
+    });
+
+    it('converts 0 C to 32 F', () => {
+      const result = commands.convert(['0', 'C', 'to', 'F']);
+      expect(result).toContain('= 32');
+    });
+
+    it('converts 1 GiB to 1024 MiB', () => {
+      const result = commands.convert(['1', 'GiB', 'to', 'MiB']);
+      expect(result).toContain('1 GiB = 1024 MiB');
+    });
+
+    it('rejects cross-category conversion', () => {
+      const result = commands.convert(['1', 'km', 'to', 'kg']);
+      expect(result).toContain('cannot convert');
+    });
+
+    it('rejects unknown unit', () => {
+      const result = commands.convert(['1', 'foo', 'to', 'm']);
+      expect(result).toContain("unknown unit 'foo'");
+    });
+
+    it('rejects non-numeric value', () => {
+      const result = commands.convert(['abc', 'km', 'to', 'mi']);
+      expect(result).toContain('not a valid number');
+    });
+  });
 });

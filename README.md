@@ -10,6 +10,8 @@ A terminal-style website built with Svelte 4, TypeScript, and Tailwind CSS.
 
 - **Theme Switching**: Multiple built-in themes with easy switching
 - **Todo List**: Manage tasks with add, list, complete, and remove commands
+- **Calculator**: `calc` for safe arithmetic expressions (no `eval`)
+- **Unit Conversion**: `convert` between length, mass, temperature, and data sizes
 - **Weather**: Check weather for any city using wttr.in
 - **Command History**: Navigate through previous commands with arrow keys
 - **Auto-complete**: Tab completion for commands

@@ -2,6 +2,8 @@ import packageJson from "../../package.json";
 import themes from "../../themes.json";
 import { history } from "../stores/history";
 import { theme } from "../stores/theme";
+import { CalcError, evaluate } from "./calc";
+import { convert, listSupportedUnits } from "./convert";
 import { todoManager } from "./todo";
 
 const hostname = window.location.hostname;
@@ -11,6 +13,7 @@ export const commands: Record<string, (args: string[]) => Promise<string> | stri
     const categories = {
       System: ["help", "clear", "date", "exit"],
       Productivity: ["todo", "weather"],
+      Math: ["calc", "convert"],
       Customization: ["theme", "banner"],
       Network: ["curl", "hostname", "whoami"],
       Contact: ["email", "repo", "donate"],
@@ -217,5 +220,63 @@ Examples:
       default:
         return `Unknown todo command: ${subCommand}\n\n${usage}`;
     }
+  },
+  calc: (args: string[]) => {
+    const usage = `Usage: calc <expression>
+
+Examples:
+  calc 2+2
+  calc (3 + 4) * 2 - 1
+  calc 100 / 7
+
+Supported: + - * / % and parentheses.`;
+
+    if (args.length === 0) {
+      return usage;
+    }
+
+    const expr = args.join(" ").trim();
+    if (expr === "") {
+      return usage;
+    }
+
+    try {
+      const result = evaluate(expr);
+      return result.toString();
+    } catch (e) {
+      if (e instanceof CalcError) {
+        return e.message;
+      }
+      return `error: ${(e as Error).message}`;
+    }
+  },
+  convert: (args: string[]) => {
+    const usage = `Usage: convert <value> <from> to <to>
+
+Examples:
+  convert 100 km to mi
+  convert 0 C to F
+  convert 1 GiB to MiB
+
+Supported units:
+${listSupportedUnits()}`;
+
+    if (args.length === 0) {
+      return usage;
+    }
+    if (args.length !== 4 || args[2] !== "to") {
+      return usage;
+    }
+
+    const value = Number(args[0]);
+    if (Number.isNaN(value)) {
+      return `error: '${args[0]}' is not a valid number`;
+    }
+
+    const result = convert(value, args[1], args[3]);
+    if (!result.ok) {
+      return result.error;
+    }
+    return `${value} ${result.fromUnit} = ${result.value} ${result.toUnit}`;
   },
 };
